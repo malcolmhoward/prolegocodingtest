@@ -1,7 +1,9 @@
 from flask_restful import Resource, Api
+from flask_restful.reqparse import RequestParser
 
 api = Api(prefix="/api/v1")
 
+# TODO: Use this hard-coded application data for unit tests
 applications = [
     {
         'application_id': '11193',
@@ -31,24 +33,77 @@ applications = [
     },
 ]
 
+def get_application_by_id(application_id, use_database=False):
+    application_id = int(application_id)
+    application_data = {}
+
+    # Use the hard-coded test data
+    # TODO: Consider performance tuning
+    for data in applications:
+        if int(data.get("application_id", 0)) == application_id:
+            application_data = data
+            break
+
+    return application_data
+
+# Configure a parser to validate incoming data
+application_request_parser = RequestParser(bundle_errors=True)
+application_request_parser.add_argument("application_id", type=str, required=True, help="Please enter valid integer as ID")
+application_request_parser.add_argument("first_name", type=str, required=True, help="First name has to be valid string")
+application_request_parser.add_argument("last_name", type=str, required=True, help="Last name has to be valid string")
+application_request_parser.add_argument("date_of_birth", type=str, required=True, help="Date needs to be in format of dd/mm/yyyy")
+application_request_parser.add_argument("application_start_date", type=str, required=True, help="Date needs to be in format of dd/mm/yyyy")
+application_request_parser.add_argument("underwriting_start_date", type=str, required=True, help="Date needs to be in format of dd/mm/yyyy")
+application_request_parser.add_argument("document_request_start_date", type=str, required=True, help="Date needs to be in format of dd/mm/yyyy")
+application_request_parser.add_argument("all_documents_received_date", type=str, required=False, help="Date needs to be in format of dd/mm/yyyy")
+application_request_parser.add_argument("underwriting_complete_date", type=str, required=False, help="Date needs to be in format of dd/mm/yyyy")
+application_request_parser.add_argument("underwriting_cycle_time", type=int, required=False, help="Please enter valid integer as ID")
+application_request_parser.add_argument("application_approved", type=bool, required=True, help="Please enter True or False")
+
 
 class ApplicationCollection(Resource):
     def get(self):
-        return {"msg": "List data for all application instances"}
+        application_data = {
+            'msg': "List data for all application instances",
+            'count': len(applications),
+            'results': applications
+        }
+
+        return application_data
 
     def post(self):
-        return {"msg": "Create new application instance here"}
+        args = application_request_parser.parse_args()
+        applications.append(args)
+
+        return {"msg": "The application instance was created", "application_data": args}, 201
 
 
 class Application(Resource):
     def get(self, id):
-        return {"msg": "Details about application instance where application_id={}".format(id)}
+        # return {"msg": "Details about application instance where application_id={}".format(id)}
+        application = get_application_by_id(id)
+        if not application:
+            return {"error": "Application not found"}
+
+        return application
 
     def put(self, id):
-        return {"msg": "Update application instance where application_id={}".format(id)}
+        # return {"msg": "Update application instance where application_id={}".format(id)}
+        args = application_request_parser.parse_args()
+        application = get_application_by_id(id)
+        if application:
+            applications.remove(application)
+            applications.append(args)
+
+        return args
 
     def delete(self, id):
-        return {"msg": "Delete application instance where application_id={}".format(id)}
+        # return {"msg": "Delete application instance where application_id={}".format(id)}
+        application = get_application_by_id(id)
+        if application:
+            applications.remove(application)
+
+        return {"message": "Deleted"}, 204
 
 
 api.add_resource(ApplicationCollection, '/applications')
