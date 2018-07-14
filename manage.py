@@ -58,7 +58,6 @@ class ClearDatabase(Command):
             db.session.rollback()
         print("clear_database management command completed")
 
-manager = Manager(app)
 
 # TODO: **Optional** Expose the load_database() and clear_database() methods via the API
 manager.add_command("load_database", LoadDatabase())
