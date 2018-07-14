@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm.state import InstanceState
 import datetime
 
 db = SQLAlchemy()
@@ -15,17 +16,20 @@ class BaseModel(db.Model):
         """Define a base way to print models"""
         return '%s(%s)' % (self.__class__.__name__, {
             column: value
-            for column, value in self._to_dict().items()
+            for column, value in self.__dict__.items()
         })
 
     def json(self):
         """
-                Define a base way to jsonify models, dealing with datetime objects
+                Define a base way to jsonify models, dealing with datetime objects.
+                InstanceState is not JSON serializable, so exclude it
         """
-        return {
+        formatted_data = {
             column: value if not isinstance(value, datetime.date) else value.strftime('%Y-%m-%d')
-            for column, value in self._to_dict().items()
+            for column, value in self.__dict__.items() if not isinstance(value, InstanceState)
         }
+
+        return formatted_data
 
 
 class Application(BaseModel, db.Model):
@@ -44,6 +48,7 @@ class Application(BaseModel, db.Model):
     underwriting_complete_date = db.Column(db.Date)
     underwriting_cycle_time = db.Column(db.Integer)
     application_approved = db.Column(db.Boolean, nullable=False)
-    # TODO:  Derive one or more additional fields from the existing columns in this model
+    # TODO: **Required** Derive all_documents_received_cycle_time field from the existing columns in this model
+    # TODO: **Optional** Derive additional fields
 
-# TODO:  Implement a second model based on the data in the second CSV
+# TODO: **Optional** Implement a second model based on the data in the second CSV
