@@ -6,7 +6,7 @@ from flask_migrate import Migrate, MigrateCommand
 
 from app import app, db
 from models import Application
-from routes import APPLICATIONS, application_table, engine
+from routes import APPLICATIONS, engine, application_table
 
 
 migrate = Migrate(app, db)

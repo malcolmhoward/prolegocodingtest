@@ -22,9 +22,12 @@ RUN apt-get install git -y
 # **Optional** Clone the repository if the Docker image doesn't contain the latest version of the project code
 # RUN git clone https://github.com/kevindewalt/prolegocodingtest.git
 
-# packages for coding test
+# Packages for coding test
 RUN apt-get install sudo postgresql postgresql-contrib libpq-dev python-pip -y
 RUN pip install -r requirements.txt
+
+# Start postresql service
+RUN service postgresql start
 
 # Create the test database and database user, and grant the user the necessary privileges
 RUN sudo -u postgres psql < reset_database.sql

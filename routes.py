@@ -73,6 +73,9 @@ APPLICATIONS = [
 
 engine = create_engine(Config.SQLALCHEMY_DATABASE_URI, convert_unicode=True)
 metadata = MetaData(bind=engine)
+# This script will throw "sqlalchemy.exc.NoSuchTableError: application error" on the following line if the
+# migration for the Application table hasn't been run.
+# TODO: **Optional** Update this Flask app so that there's no need to comment and uncomment the follow line.
 application_table = Table('application', metadata, autoload=True)
 
 
@@ -171,7 +174,8 @@ class Application(Resource):
         if application:
             if use_database:
                 con = engine.connect()
-                # TODO: Figure out why this update command updates all of the records in the table instead of an individual row
+                # TODO: **Optional** Figure out why this update command updates all of the records in the table.
+                # This endpoint should only update the application instance matching the obj_id.
                 con.execute(application_table.update(), **args)
             else:
                 # TODO: **Optional** Add support for updating a partial argument list for a given application
