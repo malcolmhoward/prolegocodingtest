@@ -27,6 +27,7 @@ class LoadDatabase(Command):
         # Read the content from the file, and split on newline character to create a list of row data strings
         contents_list = f.read().split('\n')
         column_names = APPLICATIONS[0].keys()
+        num_rows_added = 0
         for index, row_data_string in enumerate(contents_list):
             # Assumption: The first road is the heading, and has no data we need, so it can be skipped.
             if index != 0:
@@ -39,7 +40,10 @@ class LoadDatabase(Command):
                 # Transform the application_approved field value from numerical to boolean
                 data['application_approved'] = False if data['application_approved'] in [0, '0'] else True
                 con = engine.connect()
+                # TODO: **Optional** Add some exception handling to this database insert command, just in case it fails
                 con.execute(application_table.insert(), **data)
+                num_rows_added += 1
+        print('{} records added to the Application table'.format(num_rows_added))
         print("load_database management command completed")
 
 
@@ -51,11 +55,15 @@ class ClearDatabase(Command):
         self.clear_database()
 
     def clear_database(self):
+        num_rows_deleted = 0
         try:
             num_rows_deleted = db.session.query(Application).delete()
             db.session.commit()
         except:
             db.session.rollback()
+            # TODO: **Optional** Capture some meaningful information about the error, and add it to the error message
+            print('Unknown error occurred.')
+        print('{} records were deleted from the Application table'.format(num_rows_deleted))
         print("clear_database management command completed")
 
 
